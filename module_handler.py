@@ -6,8 +6,7 @@ import logging
 from logs.logging_config import configure_logging
 
 class modules:
-    def __init__(self, model_path, vectorizer_path, modulesjson_path) -> None:
-
+    def __init__(self, model_path, vectorizer_path=None, modulesjson_path=None) -> None:
         configure_logging()
         self.logger = logging.getLogger(__name__)
 
@@ -17,12 +16,16 @@ class modules:
         except Exception:
             self.logger.error(f"Error loading modules json, please check the modules json path.")
 
-        try:
-            self.load_models(model_path, vectorizer_path)
-            self.detectable_available = True
-        except Exception:
-            self.logger.error(f"Error loading models, please check the model and vectorizer paths. Detected modules will not be loaded.")
-            self.detectable_available = False
+        if vectorizer_path and model_path:
+            self.logger.info("Naive bayes classifier enabled, loading models...")
+            try:
+                self.load_models(model_path, vectorizer_path)
+                self.detectable_available = True
+            except Exception:
+                self.logger.error(f"Error loading models, please check the model and vectorizer paths. Detected modules will not be loaded.")
+                self.detectable_available = False
+        else:
+            self.logger.info("Naive bayes classifier disabled, using LLM for module detection, detectable modules will be treated as non-detectable.")
         self.load_modules()
 
     def load_models(self, model_path, vectorizer_path):

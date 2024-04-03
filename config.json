@@ -43,9 +43,12 @@
     },
     "modules": {
         "enabled": true,
+        "naive_bayes": {
+            "enabled": false,
+            "model_path": null,
+            "vectorizer_path": null
+        },
         "json_path": null,
-        "model_path": null,
-        "vectorizer_path": null,
         "llm_model_path": null,
         "override_debug": false
     },

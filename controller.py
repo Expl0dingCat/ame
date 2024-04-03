@@ -43,24 +43,30 @@ class controller:
         else:
             self.vprint('Memory disabled. Enable memory in the config file.')
         
-        if self.debug == False:
+        if not self.debug:
             if self.modules_enabled:
                 from module_handler import modules
                 self.vprint('Initializing modules...')
-                if self.modules_json_path == None:
+                if not self.modules_json_path:
                     self.vprint(f'No modules path specified, using default: {parent_dir}/modules/modules.json')
                     self.modules_json_path = f'{parent_dir}/modules/modules.json'
-                if self.modules_vectorizer == None:
-                    self.vprint(f'No module vectorizer specified, using default: {parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl')
-                    self.modules_vectorizer = f'{parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl'
-                if self.modules_model == None:
-                    self.vprint(f'No module model specified, using default: {parent_dir}/module_engine/pickles/naive_bayes_model.pkl')
-                    self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
+                if self.naive_bayes_enabled:
+                    if not self.modules_vectorizer:
+                        self.vprint(f'No module vectorizer specified, using default: {parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl')
+                        self.modules_vectorizer = f'{parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl'
+                    else:
+                        self.modules_vectorizer = None
+                    if not self.modules_model:
+                        self.vprint(f'No module model specified, using default: {parent_dir}/module_engine/pickles/naive_bayes_model.pkl')
+                        self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
+                    else:
+                        self.modules_model = None
                 self.modules = modules(self.modules_model, self.modules_vectorizer, self.modules_json_path)
                 self.module_output = None
             else:
                 self.vprint('Modules are disabled. Enable modules in the config file.')
             self.eval_mode = False
+
         elif self.modules_override_debug:
             self.vprint('WARNING: override_debug is enabled, modules will remain active. This is not recommended unless debugging modules.', logging.WARNING)
             self.vprint('Debug mode enabled, modules enabled, eval mode enabled, override_debug enabled.')
@@ -203,10 +209,12 @@ class controller:
             self.speech_to_text_model = config['stt']['model_path']
         self.modules_enabled = config['modules']['enabled']
         self.modules_override_debug = config['modules']['override_debug']
+        self.naive_bayes_enabled = config['modules']['naive_bayes']
         if self.modules_enabled or self.modules_override_debug:
+            if self.naive_bayes_enabled:
+                self.modules_vectorizer = config['modules']['vectorizer_path']
+                self.modules_model = config['modules']['model_path']
             self.modules_json_path = config['modules']['json_path']
-            self.modules_vectorizer = config['modules']['vectorizer_path']
-            self.modules_model = config['modules']['model_path']
             self.modules_llm_model = config['modules']['llm_model_path']
         self.weeb = config['weeb']
         self.use_gpu = config['use_gpu']
@@ -386,48 +394,6 @@ class controller:
         else:
             self.vprint(f'Languge model disabled, unable to generate response. Enable language in config.json to use.', logging.ERROR)
             raise Exception('Language model is disabled, unable to generate response. Enable language in config.json to use.')
-
-    def speak(self, input):
-        if self.tts_enabled:
-            if input == None:
-                self.vprint('No input text given.', logging.ERROR)
-                return 'No input text given.'
-            self.vprint('Generating audio output...')
-            output = self.tts.generate(input)
-            self.vprint('Audio output generated.')
-
-            return output
-        else:
-            self.vprint('TTS disabled, enable tts in config.json to use.', logging.WARNING)
-            return 'TTS is disabled.'
-    
-    def listen(self, input):
-        if self.stt_enabled:
-            if input == None:
-                self.vprint('No input audio file specified.', logging.ERROR)
-                return 'No input audio file specified.'
-            self.vprint('Listening to audio input...')
-            output = self.stt.transcribe(input)
-            self.vprint(f'Transcription received: {output}')
-
-            return output
-        else:
-            self.vprint('STT disabled, enable stt in config.json to use.', logging.WARNING)
-            return 'STT is disabled.'
-
-    def see(self, input):
-        if self.vision_enabled:
-            if input == None:
-                self.vprint('No input image specified.', logging.ERROR)
-                return 'No input image specified.'
-            self.vprint('Analyzing image...')
-            output = self.vision.describe(input)
-            self.vprint(f'Image analysis complete: {output}')
-
-            return output
-        else:
-            self.vprint('Vision disabled, enable vision in config.json to use.', logging.WARNING)
-            return 'Vision is disabled.'
         
     def module_pipeline(self, uinput):
         detected, args = self.detect_module(uinput)
@@ -446,10 +412,10 @@ class controller:
         if self.modules_enabled:
             self.vprint(f'Module detection initiated, processing input: {user_input}')
             if self.modules.detectable_available:
-                self.vprint(f'Looking for detectable modules: {self.modules.get_detectable_modules()}')
+                self.vprint(f'Looking for models detectable via naive bayes classifier: {self.modules.get_detectable_modules()}')
                 output, probability = self.modules.predict_module(user_input)
             else:
-                self.vprint(f'No detectable modules found, skipping detection with classifier.')
+                self.vprint(f'No detectable modules found (naive bayes classifier disabled?), skipping detection with classifier.')
                 output = None
                 probability = 100.0
 
@@ -606,6 +572,48 @@ class controller:
         else:
             self.vprint('Modules disabled, enable modules in config.json to use.', logging.WARNING)
             return 'Modules are disabled.'
+        
+    def speak(self, input):
+        if self.tts_enabled:
+            if input == None:
+                self.vprint('No input text given.', logging.ERROR)
+                return 'No input text given.'
+            self.vprint('Generating audio output...')
+            output = self.tts.generate(input)
+            self.vprint('Audio output generated.')
+
+            return output
+        else:
+            self.vprint('TTS disabled, enable tts in config.json to use.', logging.WARNING)
+            return 'TTS is disabled.'
+    
+    def listen(self, input):
+        if self.stt_enabled:
+            if input == None:
+                self.vprint('No input audio file specified.', logging.ERROR)
+                return 'No input audio file specified.'
+            self.vprint('Listening to audio input...')
+            output = self.stt.transcribe(input)
+            self.vprint(f'Transcription received: {output}')
+
+            return output
+        else:
+            self.vprint('STT disabled, enable stt in config.json to use.', logging.WARNING)
+            return 'STT is disabled.'
+
+    def see(self, input):
+        if self.vision_enabled:
+            if input == None:
+                self.vprint('No input image specified.', logging.ERROR)
+                return 'No input image specified.'
+            self.vprint('Analyzing image...')
+            output = self.vision.describe(input)
+            self.vprint(f'Image analysis complete: {output}')
+
+            return output
+        else:
+            self.vprint('Vision disabled, enable vision in config.json to use.', logging.WARNING)
+            return 'Vision is disabled.'
 
 if __name__ == '__main__':
     print('The controller is not meant to be run directly, use one of the interfaces to interact with Ame.')
