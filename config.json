@@ -17,7 +17,7 @@
         "gpu_layers": -1,
         "main_gpu": 0,
         "threads": null,
-        "virtual_context_limit": 0, 
+        "virtual_context_limit": 2048, 
         "personality_prompt": null,
         "model_file_ext": ".gguf",
         "format": "chatml",
@@ -42,7 +42,7 @@
         "model_path": null
     },
     "modules": {
-        "enabled": true,
+        "enabled": false,
         "naive_bayes": {
             "enabled": false,
             "model_path": null,

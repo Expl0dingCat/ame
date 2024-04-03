@@ -29,7 +29,7 @@ class controller:
             self.vprint('Initializing memory...')
             from memory_handler import memory
             self.memory = memory()
-            if self.memory_path == None:
+            if not self.memory_path:
                 if os.path.exists(f'{parent_dir}/memories/{self.assistant_name}.pickle.gz'):
                     self.vprint(f'No memory db path specified, found existing memory db, loading: {parent_dir}/memories/{self.assistant_name}.pickle.gz')
                     self.memory.load_memory(f'{parent_dir}/memories/{self.assistant_name}.pickle.gz')
@@ -66,22 +66,26 @@ class controller:
             else:
                 self.vprint('Modules are disabled. Enable modules in the config file.')
             self.eval_mode = False
-
         elif self.modules_override_debug:
             self.vprint('WARNING: override_debug is enabled, modules will remain active. This is not recommended unless debugging modules.', logging.WARNING)
             self.vprint('Debug mode enabled, modules enabled, eval mode enabled, override_debug enabled.')
             from module_handler import modules
-            self.vprint('Initializing modules...')
-            if self.modules_json_path == None:
+            if not self.modules_json_path:
                 self.vprint(f'No modules path specified, using default: {parent_dir}/modules/modules.json')
                 self.modules_json_path = f'{parent_dir}/modules/modules.json'
-            if self.modules_vectorizer == None:
-                self.vprint(f'No module vectorizer specified, using default: {parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl')
-                self.modules_vectorizer = f'{parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl'
-            if self.modules_model == None:
-                self.vprint(f'No module model specified, using default: {parent_dir}/module_engine/pickles/naive_bayes_model.pkl')
-                self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
+            if self.naive_bayes_enabled:
+                if not self.modules_vectorizer:
+                    self.vprint(f'No module vectorizer specified, using default: {parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl')
+                    self.modules_vectorizer = f'{parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl'
+                else:
+                    self.modules_vectorizer = None
+                if not self.modules_model:
+                    self.vprint(f'No module model specified, using default: {parent_dir}/module_engine/pickles/naive_bayes_model.pkl')
+                    self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
+                else:
+                    self.modules_model = None
             self.modules = modules(self.modules_model, self.modules_vectorizer, self.modules_json_path)
+            self.module_output = None
             self.eval_mode = True
         else:
             self.vprint('Debug mode is enabled, modules are disabled, eval mode enabled.')
@@ -103,6 +107,9 @@ class controller:
                     self.vprint(f'LoRA enabled: {self.lora_model_path}')
                 else:
                     self.vprint(f'LoRA is enabled but no model path was specified, not using LoRA.')
+            else:
+                self.vprint('LoRA is disabled.')
+                self.lora_model_path = None
 
             model_files = glob.glob(os.path.join(model_directory, f'*{self.model_file_ext}'))
 
@@ -132,7 +139,7 @@ class controller:
         if self.stt_enabled:
             self.vprint('Initializing speech-to-text engine...')
             from voice.stt_handler import stt
-            if self.speech_to_text_model == None:
+            if not self.speech_to_text_model:
                 self.vprint('No speech-to-text model specified, using default: base.en')
                 self.stt = stt('base.en')
             else:
@@ -143,7 +150,7 @@ class controller:
         if self.tts_enabled:
             from voice.tts_handler import tts
             self.vprint('Initializing text-to-speech engine...')
-            if self.text_to_speech_model == None:
+            if not self.text_to_speech_model:
                 self.vprint('No text-to-speech model specified, using default: v2/en_speaker_9')
                 self.tts = tts('v2/en_speaker_9', self.tts_temperature)
             else:    
@@ -154,7 +161,7 @@ class controller:
         if self.vision_enabled:
             from vision.vision_handler import vision
             self.vprint('Initializing vision engine...')
-            if self.vision_model == None:
+            if not self.vision_model:
                 self.vprint('No vision model specified, using default: default vision model')
                 self.vision = vision('default vision model')
             else:    
@@ -209,11 +216,11 @@ class controller:
             self.speech_to_text_model = config['stt']['model_path']
         self.modules_enabled = config['modules']['enabled']
         self.modules_override_debug = config['modules']['override_debug']
-        self.naive_bayes_enabled = config['modules']['naive_bayes']
+        self.naive_bayes_enabled = config['modules']['naive_bayes']['enabled']
         if self.modules_enabled or self.modules_override_debug:
             if self.naive_bayes_enabled:
-                self.modules_vectorizer = config['modules']['vectorizer_path']
-                self.modules_model = config['modules']['model_path']
+                self.modules_vectorizer = config['modules']['naive_bayes']['vectorizer_path']
+                self.modules_model = config['modules']['naive_bayes']['model_path']
             self.modules_json_path = config['modules']['json_path']
             self.modules_llm_model = config['modules']['llm_model_path']
         self.weeb = config['weeb']
