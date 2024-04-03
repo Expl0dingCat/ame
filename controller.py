@@ -92,25 +92,31 @@ class controller:
             self.vprint('Initializing language model...')
             model_directory = os.path.join(parent_dir, 'language', 'model')
 
+            if self.language_lora_enabled:
+                if not self.lora_model_path:
+                    self.vprint(f'LoRA enabled: {self.lora_model_path}')
+                else:
+                    self.vprint(f'LoRA is enabled but no model path was specified, not using LoRA.')
+
             model_files = glob.glob(os.path.join(model_directory, f'*{self.model_file_ext}'))
 
-            if self.language_model_path == None:
+            if not self.language_model_path:
                 if model_files:
                     model_file_path = model_files[0]
                     self.vprint(f'No language model path specified, using first in model dir, loading: {model_file_path}')
-                    self.ai = ai(model_file_path, use_gpu=self.use_gpu, context=self.context_limit, format=self.format, verbose=self.verbose, layers=self.gpu_layers)
+                    self.ai = ai(model_file_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
                 else:
                     self.vprint(f'No language model path specified, could not find any existing language model, place a model file (looking for {self.model_file_ext} file, this can be changed in config.json) in {model_directory} or specify the model path in config.json.')
                     raise Exception(f'No language model path specified, could not find any existing language model, place a model file (looking for {self.model_file_ext} file, this can be changed in config.json) in {model_directory} or specify the model path in config.json.')
             else:
-                self.ai = ai(self.language_model_path)
+                self.ai = ai(self.language_model_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
 
-            if self.system_prompt == None:
+            if not self.system_prompt:
                 self.vprint('No system prompt specified, using default (recommended).')
             else:
                 self.vprint(f"Using custom system prompt:\n'{self.system_prompt}', this is not recommended unless you know what you are doing, module output, time and date won't be passed to LLM.")
 
-            if self.personality_prompt == None:
+            if not self.personality_prompt:
                 self.vprint('No personality prompt specified, not using any.')
             else:
                 self.vprint(f'Using personality prompt:\n"{self.personality_prompt}"')
@@ -167,11 +173,12 @@ class controller:
         if self.memory_enabled:
             self.memory_path = config['memory']['path']
         self.language_enabled = config['language']['enabled']
+        self.language_lora_enabled = config['language']['lora']['enabled']
         if self.language_enabled:
             self.language_model_path = config['language']['model_path']
             self.max_tokens = config['language']['max_tokens']
             self.temperature = config['language']['temperature']
-            self.context_limit = config['language']['context_limit']
+            self.context_size = config['language']['context_size']
             self.virtual_context_limit = config['language']['virtual_context_limit']
             self.personality_prompt = config['language']['personality_prompt']
             self.model_file_ext = config['language']['model_file_ext']
@@ -179,7 +186,11 @@ class controller:
             self.top_k = config['language']['top_k']
             self.top_p = config['language']['top_p']
             self.gpu_layers = config['language']['gpu_layers']
+            self.main_gpu = config['language']['main_gpu']
+            self.threads = config['language']['threads']
             self.system_prompt = config['language']['system_prompt']
+            if self.language_lora_enabled:
+                self.lora_model_path = config['language']['lora']['model_path']
         self.vision_enabled = config['vision']['enabled']
         if self.vision_enabled:
             self.vision_model = config['vision']['model_path']
@@ -248,21 +259,22 @@ class controller:
         if self.user_cmds(user_input):
             return user_input, f'User command detected: {user_input}', ''
         self.vprint(f'Speech input: {user_input}')
+        if self.modules_enabled:
+            self.module_pipeline(user_input)
         if img:
             if self.vision_enabled:
                 self.vprint(f'Processing image input...')
                 desc = self.see(img)
+                output = self.generate_response(f'{user_input} [user sent an image: {desc}]')
             else:
                 self.vprint(f'Vision disabled, skipping image processing...')
                 desc = None
-            output = self.generate_response(f'{user_input} [user sent an image: {desc}]')
-        if self.modules_enabled:
-            self.module_pipeline(user_input)
+                output = self.generate_response(f'{user_input} [user sent an image but it could not be processed since vision is disabled.]')
         output = self.generate_response(user_input)
         if self.tts_enabled:
             audio_output = self.speak(output)
         else:
-            audio_output = ''
+            audio_output = None
         self.vprint(f'Full system completed, returning response: {output}')
         return user_input, output, audio_output
     
@@ -270,21 +282,22 @@ class controller:
         self.vprint(f'Text pipeline initiated, processing input: {input}')
         if self.user_cmds(input):
             return input, f'User command detected: {input}', ''
+        if self.modules_enabled:
+            self.module_pipeline(input)
         if img:
             if self.vision_enabled:
                 self.vprint(f'Processing image input...')
                 desc = self.see(img)
+                output = self.generate_response(f'{input} [user sent an image: {desc}]')
             else:
                 self.vprint(f'Vision disabled, skipping image processing...')
                 desc = None
-            output = self.generate_response(f'{input} [user sent an image: {desc}]')
-        if self.modules_enabled:
-            self.module_pipeline(input)
+                output = self.generate_response(f'{input} [user sent an image but it could not be processed since vision is disabled.]')
         output = self.generate_response(input)
         if self.tts_enabled:
             audio_output = self.speak(output)
         else:
-            audio_output = ''
+            audio_output = None
         self.vprint(f'Text pipeline completed, returning response: {output}')
         return input, output, audio_output
 
@@ -296,7 +309,7 @@ class controller:
             past = self.memory.remember(user_input)
             self.vprint(f'Past conversation chosen: {past}')
         else:
-            past = None
+            past = ["No applicable past conversation."]
             self.vprint(f'Memory disabled, skipping past conversation selection...')
 
         if self.modules_enabled:
@@ -305,13 +318,13 @@ class controller:
                 mod_prompt = self.module_output
         
         system_prompt = '\n'.join([
-        self.personality_prompt if self.personality_prompt else '',
-        f'{self.assistant_name} may use any of the following information to aid them in their responses:',
-        f'Current time: {datetime.now().strftime("%H:%M:%S")}',
-        f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
-        f'Extra information: {mod_prompt}' if mod_prompt else '',
-        f'{self.assistant_name} remembers this past conversation that may be relevant to the current conversation:',
-        *past,
+            self.personality_prompt if self.personality_prompt else '',
+            f'{self.assistant_name} may use any of the following information to aid them in their responses:',
+            f'Current time: {datetime.now().strftime("%H:%M:%S")}',
+            f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
+            f'Extra information: {mod_prompt}' if mod_prompt else '',
+            f'{self.assistant_name} remembers this past conversation that may be relevant to the current conversation:',
+            *past,
         ])
 
         prompt = [
@@ -319,7 +332,6 @@ class controller:
                 "role": "system",
                 "content": system_prompt
             },
-            
         ]
         
         if self.current:
@@ -334,9 +346,7 @@ class controller:
         self.vprint(f'Prompt: {prompt}')
 
         if self.language_enabled:
-
             token_amt = self.ai.get_token_amt(str(prompt))
-
             if token_amt > self.virtual_context_limit:
                 if self.current:
                     self.vprint(f'Prompt usage exceeded virtual context limit of {self.virtual_context_limit} ({token_amt}). Earliest message ("{str(self.current[0])}") in conversation dropped from short-term memory.')
@@ -346,7 +356,7 @@ class controller:
                     past = 'None'
 
             self.vprint(f'Starting response generation...')
-            text, full, prompt_usage, response_usage = self.ai.generate(prompt, tokens=self.max_tokens, temp=self.temperature)
+            text, full, prompt_usage, response_usage = self.ai.generate(prompt, tokens=self.max_tokens, temp=self.temperature, top_p=self.top_p, top_k=self.top_k)
 
             self.vprint(f'Response generated: {text}, prompt usage: {prompt_usage}, response usage: {response_usage}')
 

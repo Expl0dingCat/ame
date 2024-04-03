@@ -11,18 +11,25 @@
         "model_path": null,
         "max_tokens": 512,
         "temperature": 0.85,
-        "context_limit": 8000,
+        "context_size": 0,
         "top_p": 0.95,
         "top_k": 40,
-        "gpu_layers": 45,
-        "virtual_context_limit": 7000, 
+        "gpu_layers": -1,
+        "main_gpu": 0,
+        "threads": null,
+        "virtual_context_limit": 0, 
         "personality_prompt": null,
         "model_file_ext": ".gguf",
         "format": "chatml",
-        "system_prompt": null
+        "system_prompt": null,
+        "lora": {
+            "enabled": false,
+            "model_path": null
+        }
     },
     "vision": {
         "enabled": false,
+        "use_CLIP" : false,
         "model_path": null
     },
     "tts": {
