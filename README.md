@@ -53,7 +53,7 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 
 ## Usage ⚙️
 
-### Install requirements
+### Install requirements (Windows)
 ```bash
 pip3 install sentence-transformers
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
@@ -61,17 +61,28 @@ set CMAKE_ARGS="-DLLAMA_CUBLAS=on"
 set FORCE_CMAKE=1
 pip3 install llama-cpp-python --no-cache-dir
 pip3 install openai-whisper
+pip3 install aiohttp_cors
 pip3 install pyaudio
 pip3 install aiohttp
 pip3 install keyboard
 pip3 install transformers
 pip3 install git+https://github.com/suno-ai/bark.git
 ```
+
+### Install requirements (Linux)
+
+
 - You must have CUDA 11.8
 - You must use torch (and its associated packages) version 2.0.0+ or it will break
 - If you need to reinstall torch, purge it before doing so
 - Ame was designed on Python 3.10.11
+- If llama-cpp-python is using your CPU when use_gpu is set to `true`, ensure you have nvidia-cuda-toolkit
 
+```
+sudo apt install nvidia-cuda-toolkit
+CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DLLAMA_CUBLAS=on
+-DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
+```
 
 ### Server/client
 Move `server.py` (interfaces/server-client/) to the root folder then run:
@@ -83,6 +94,8 @@ To access the server locally make sure `Local = True` in `client.py` (interfaces
 ```bash
 python client.py
 ```
+
+### Discord bot
 
 ### API
 Ame's API allows for programmatic use of Ame's entire system. Here is an example:
@@ -120,7 +133,6 @@ Component                     | Status
 ----------------------------- | -----
 Client UI                     |  🔴
 Discord interface             |  🔴
-Telegram interface            |  🔴
 Documentation                 |  🟡
 
 ## Plans for `v2` 🔵
@@ -134,6 +146,7 @@ As `v1` is still in development, this section is subject to volatile change, it 
 - Edge TPU support
 - RVC (singing and possibly TTS)
 - Vtuber integrations (weeb)
+- Safetensor support -
 - Home Assistant (this is already detectable out of the box by the module system but its a large task to integrate)
 
 ## The meaning behind "Ame" 💧

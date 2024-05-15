@@ -15,7 +15,8 @@ from hyperdb.galaxy_brain_math_shit import (
 EMBEDDING_MODEL = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', device='cuda')
 
 def get_embedding(documents, key=None):
-    """Default embedding function that uses OpenAI Embeddings."""
+    # """Default embedding function that uses OpenAI Embeddings."""
+    # Code changed to use embedding model
     if isinstance(documents, list):
         if isinstance(documents[0], dict):
             texts = []

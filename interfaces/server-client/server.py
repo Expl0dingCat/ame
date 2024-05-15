@@ -1,4 +1,6 @@
 import os
+
+import base64
 from aiohttp import web
 from aiohttp_cors import setup, ResourceOptions
 from controller import controller
@@ -40,23 +42,36 @@ async def handle_full(request):
     if request.content_type == 'multipart/form-data':
         reader = await request.multipart()
         field = await reader.next()
-        with open('user_speech.wav', 'wb') as f:
+        with open('speech.wav', 'wb') as f:
             while True:
                 chunk = await field.read_chunk()
                 if not chunk:
                     break
                 f.write(chunk)
         userinput, output, audio_output = controller.full_pipeline(os.path.abspath(f.name))
+
+        if audio_output is not None:
+            with open(audio_output, 'rb') as audio_file:
+                audio_bytes = audio_file.read()
+
         response = {'userinput': userinput, 'output': output}
-        return web.json_response(response, headers={'X-Audio-Output': audio_output})
+        headers = {'Audio-Output': audio_bytes}
+        return web.json_response(response, headers=headers)
     else:
         data = await request.json()
         input = data['input']
         userinput, output, audio_output = controller.full_pipeline(input)
+
+        if audio_output is None:
+            with open(audio_output, 'rb') as audio_file:
+                audio_bytes = audio_file.read()
+
         response = {'userinput': userinput, 'output': output}
-        return web.json_response(response, headers={'X-Audio-Output': audio_output})
+        headers = {'Audio-Output': audio_bytes}
+        return web.json_response(response, headers=headers)
 
 async def handle_text(request):
+    print("text")
     data = await request.json()
     input = data['input']
     userinput, output, audio_output = controller.text_pipeline(input)

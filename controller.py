@@ -375,7 +375,7 @@ class controller:
 
             self.vprint(f'Response generated: {text}, prompt usage: {prompt_usage}, response usage: {response_usage}')
 
-            if text == None:
+            if not text:
                 self.vprint('No response generated.', logging.INFO)
             elif text == '':
                 self.vprint('Empty response generated.', logging.INFO)
@@ -405,8 +405,8 @@ class controller:
     def module_pipeline(self, uinput):
         detected, args = self.detect_module(uinput)
         
-        if detected is not None:
-            if args is not None:
+        if detected:
+            if args:
                 self.module_output = self.run_module(detected, args)
             else:
                 self.module_output = self.run_module(detected)
@@ -427,7 +427,7 @@ class controller:
                 probability = 100.0
 
             with_args = []
-            if output == None:
+            if not output:
                 self.vprint(f'No module detected, probability: {probability}')
                 undetectable_modules = self.modules.get_undetectable_modules()
                 if undetectable_modules:
@@ -549,7 +549,7 @@ class controller:
                 ]
                 
                 self.vprint(f'Starting response generation for module detection...')
-                text, full, prompt_usage, response_usage = self.ai.generate(prompt, max_tokens=500, temperature=0, stop=["USER: "])
+                text, full, prompt_usage, response_usage = self.ai.generate(prompt, max_tokens=500, temperature=0)
 
                 self.vprint(f'LLM output: {text}, prompt usage: {prompt_usage}, response usage: {response_usage}')
 
@@ -582,7 +582,7 @@ class controller:
         
     def speak(self, input):
         if self.tts_enabled:
-            if input == None:
+            if not input:
                 self.vprint('No input text given.', logging.ERROR)
                 return 'No input text given.'
             self.vprint('Generating audio output...')
@@ -596,7 +596,7 @@ class controller:
     
     def listen(self, input):
         if self.stt_enabled:
-            if input == None:
+            if not input:
                 self.vprint('No input audio file specified.', logging.ERROR)
                 return 'No input audio file specified.'
             self.vprint('Listening to audio input...')
@@ -610,7 +610,7 @@ class controller:
 
     def see(self, input):
         if self.vision_enabled:
-            if input == None:
+            if not input:
                 self.vprint('No input image specified.', logging.ERROR)
                 return 'No input image specified.'
             self.vprint('Analyzing image...')
