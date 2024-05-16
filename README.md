@@ -10,7 +10,7 @@ Join the **[discord](https://discord.gg/S6h8XYsuZt)** for frequent dev updates, 
 Ame is in an incomplete state and is being developed by me and only me, expect progress to be slow, refer to the **[progress](#progress-v1)** section of the readme for more information. The client and server are unable to communicate the audio files, this has not been implemented yet, audio generation is functional.
 
 ## Announcements 📢
-
+- [2024-05-15] Development is going well, see the discord channel #dev-spam for more! (Including a todo list and timelines) 
 
 ## Overview 📖
 - **[Key features 🚀](#key-features-)**
@@ -26,7 +26,7 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 
 **Text-to-Speech (TTS) and Speech-to-Text (STT)**: Ame's TTS and STT capabilities enable natural and effortless communication. STT is powered by OpenAI's whisper and TTS is powered by Suno's bark.
 
-**Discord & Telegram Integration**: Ame seamlessly integrates with both Discord and Telegram, allowing you to interact with it through text-based messaging and voice notes. Discord and Telegram provide a familiar and convenient way to interact with Ame, enabling efficient communication and access to its full range of functionalities.
+**Discord Integration**: Ame seamlessly integrates with Discord, allowing you to interact with it through text-based messaging and voice notes. Discord provides a familiar and convenient way to interact with Ame, enabling efficient communication and access to its full range of functionalities.
 
 **Open-Source**: Ame is entirely open-source. This allows for knowledge sharing and the continuous improvement of Ame while contributing to the open-source community, democratizing ML research in the process.
 
