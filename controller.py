@@ -117,12 +117,12 @@ class controller:
                 if model_files:
                     model_file_path = model_files[0]
                     self.vprint(f'No language model path specified, using first in model dir, loading: {model_file_path}')
-                    self.ai = ai(model_file_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
+                    self.ai = ai(self.model_file_ext, model_file_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
                 else:
                     self.vprint(f'No language model path specified, could not find any existing language model, place a model file (looking for {self.model_file_ext} file, this can be changed in config.json) in {model_directory} or specify the model path in config.json.')
                     raise Exception(f'No language model path specified, could not find any existing language model, place a model file (looking for {self.model_file_ext} file, this can be changed in config.json) in {model_directory} or specify the model path in config.json.')
             else:
-                self.ai = ai(self.language_model_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
+                self.ai = ai(self.model_file_ext, self.language_model_path, use_gpu=self.use_gpu, context=self.context_size, format=self.format, verbose=self.verbose, layers=self.gpu_layers, threads=self.threads, lora_pth=self.lora_model_path)
 
             if not self.system_prompt:
                 self.vprint('No system prompt specified, using default (recommended).')
