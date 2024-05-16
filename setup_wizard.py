@@ -1,140 +1,173 @@
-config = {
-    "verbose": true,
-    "log": true,
-    "assistant_name": "Ame",
-    "memory": {
-        "enabled": true,
-        "path": null
-    },
-    "language": {
-        "enabled": true,
-        "model_path": null,
-        "max_tokens": 128,
-        "temperature": 0.85,
-        "context_limit": 2048,
-        "virtual_context_limit": 1024, 
-        "personality_prompt": null,
-        "model_file_ext": ".bin"
-    },
-    "vision": {
-        "enabled": true,
-        "model_path": null
-    },
-    "tts": {
-        "enabled": false,
-        "model_path": null,
-        "temperature": 0.6
-    },
-    "stt": {
-        "enabled": false,
-        "model_path": null
-    },
-    "modules": {
-        "enabled": true,
-        "json_path": null,
-        "model_path": null,
-        "vectorizer_path": null
-    },
-    "weeb": false,
-    "use_gpu": true,
-    "debug": true
-}
+import os
+import platform
+import sys
+import subprocess
+import pkg_resources
 
-def input_validator(intxt):
+# TODO
+# - When installing base dependancies, fix CUDA detection with nvcc
+# - Add other dependancies in install_base_dependencies
+# - Add other dependancies for specific cases ()
+# - a lot more
+
+def input_y_n(msg: str):
     while True:
-        userans = input(intxt).lower()
+        y_or_n = input(msg + " (y/n)").lower().strip()
+        if y_or_n == 'y' or y_or_n == 'n':
+            return y_or_n
+        else:
+            print("Invalid input! Please input 'y' or 'n'.")
 
-        if userans == 'y':
-            return True
-        elif userans == 'n':
-            return False
+def input_with_options(msg: str, options: list):
+    while True:
+        options_str = ', '.join(str(x) for x in options)
+        response = input(f'{msg} ({options_str}): ').lower().strip()
+        if any(option in response for option in options):
+            return response
         else:
-            print('Invalid input. Please try again.')
+            print(f'Invalid input! Please input one of the following: {options_str}')
 
-def advanced_setup():
-    print('---GENERAL---')
-    verbose = input_validator('Would you like to enable verbose mode? (y/n): ')
-    log = input_validator('Would you like to enable logging? (y/n): ')
-    assistant_name = input('What is the name of the assistant (this is also used in the prompt): ')
-    print('---MEMORY---')
-    memory_enabled = input_validator('Would you like to enable memory? (y/n): ')
-    if memory_enabled:
-        memory_path = input('Please enter the path to the memory file (leave blank for autodetect): ')
-        if memory_path == '':
-            memory_path = None
-    print('---LANGUAGE---')
-    language_enabled = input_validator('Would you like to enable language? (y/n): ')
-    if language_enabled:
-        language_model_path = input('Please enter the path to the language model (leave blank for autodetect): ')
-        if language_model_path == '':
-            language_model_path = None
-        language_max_tokens = input('Please enter the maximum number of tokens to generate (leave blank for default [128]): ')
-        if language_max_tokens == '':
-            language_max_tokens = 128
-        else:
-            language_max_tokens = int(language_max_tokens)
-        language_temperature = input('Please enter the temperature (leave blank for default [0.85]): ')
-        if language_temperature == '':
-            language_temperature = 0.85
-        else:
-            language_temperature = float(language_temperature)
-        language_context_limit = input('Please enter the context limit of your language model: ')
-        language_virtual_context_limit = input('Please enter the virtual context limit (the point where the last message will be removed from history to prevent too many tokens error, recommended to be ~80% of actual context limit): ')
-        language_personality_prompt = input('Please enter the personality prompt (leave blank for default): ')
-        if language_personality_prompt == '':
-            language_personality_prompt = None
-        language_model_file_ext = input('Please enter the model file extension (leave blank for default, .gguf): ')
-        if language_model_file_ext == '':
-            language_model_file_ext = '.gguf'
-    # vision is not implemented yet
-    #print('---VISION---')
-    #vision_enabled = input_validator('Would you like to enable vision? (y/n): ')
-    #if vision_enabled:
-        # vision_model_path = input('Please enter the path to the vision model (leave blank for default): ')
-        # if vision_model_path == '':
-        #    vision_model_path = None
-    print('---TEXT TO SPEECH---')
-    tts_enabled = input_validator('Would you like to enable text to speech? (y/n): ')
-    if tts_enabled:
-        tts_model_path = input('Please enter the path to the text to speech model (leave blank for default [base]): ')
-        if tts_model_path == '':
-            tts_model_path = None
-        tts_temperature = input('Please enter the temperature (leave blank for default): ')
-        if tts_temperature == '':
-            tts_temperature = 0.6
-        else:
-            tts_temperature = float(tts_temperature)
-    print('---SPEECH TO TEXT---')
-    stt_enabled = input_validator('Would you like to enable speech to text? (y/n): ')
-    if stt_enabled:
-        stt_model = input('Please enter the name of the stt model (leave blank for default): ')
-        if stt_model_path == '':
-            stt_model_path = None
-    print('---MODULES---')
-    modules_enabled = input_validator('Would you like to enable modules? (y/n): ')
-    if modules_enabled:
-        modules_json_path = input('Please enter the path to the modules json file (leave blank for default): ')
-        if modules_json_path == '':
-            modules_json_path = None
-        modules_model_path = input('Please enter the path to the modules model (leave blank for default): ')
-        if modules_model_path == '':
-            modules_model_path = None
-        modules_vectorizer_path = input('Please enter the path to the modules vectorizer (leave blank for default): ')
-        if modules_vectorizer_path == '':
-            modules_vectorizer_path = None
-    print('---MISC---')
-    weeb = False # not implemented yet 
-    use_gpu = input_validator('Would you like to use the GPU? (y/n): ')
-    debug = input_validator('Would you like to enable debug mode? (y/n): ')
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
-def express_setup():
+def detect_os():
+    return platform.system()
+
+def get_cuda_version():
+    try:
+        result = subprocess.run(['nvcc', '--version'], capture_output=True, text=True, check=True)
+        version_info = result.stdout
+        for line in version_info.split('\n'):
+            if 'release' in line:
+                return True, line.strip()
+        return False, "CUDA version information not found in nvcc output."
+    except FileNotFoundError:
+        try:
+            result = subprocess.run(['nvidia-smi'], capture_output=True, text=True, check=True)
+            for line in result.stdout.split('\n'):
+                if 'CUDA Version' in line:
+                    cuda_version = line.split('CUDA Version:')[1].strip().split()[0]
+                    return True, cuda_version
+        except FileNotFoundError:
+            return False, "Neither nvcc nor nvidia-smi found. CUDA is likely not installed."
+
+def check_bld_tools():
+    import winreg
+    try:
+        registry_key_path = r"SOFTWARE\Microsoft\VisualStudio\SxS\VS7"
+        registry_value_name = "17.0"
+
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, registry_key_path, 0, winreg.KEY_READ) as key:
+            try:
+                install_path, regtype = winreg.QueryValueEx(key, registry_value_name)
+                if install_path:
+                    return True, f"Visual Studio Build Tools 2022 is installed at: {install_path}"
+            except FileNotFoundError:
+                return False, "Visual Studio Build Tools 2022 is not installed."
+    except FileNotFoundError:
+        return False, "Visual Studio registry key not found."
     
+def prereq_check():
+    cuda = False
+    bld_tools = False
 
-def setup():
-    print('Welcome to the Ame setup wizard. This will automatically configure Ame for you.')
-    print('Please read and follow the instructions carefully.')
-    type_of_setup = input('Would you like to do an express setup or an advanced setup? (e/a): ')
-    if type_of_setup == 'a':
-        advanced_setup()
+    cuda, info = get_cuda_version()
+    if not cuda:
+        print(info)
+        print('WARNING: Could not detect CUDA version, CUDA is required for NVIDIA GPU based acceleration. If you do not have it and need it, you can install it here: https://developer.nvidia.com/cuda-toolkit')
     else:
-        express_setup()
+        print(f'Detected CUDA version: {info}')
+
+    if detect_os() == 'Windows':
+        bld_tools, info = check_bld_tools()
+        if not bld_tools:
+            print(info)
+            print('WARNING: Visual Studio Build Tools not found, it is required for llama-cpp-python (if you opted for gguf/ggml). You can download it here: https://visualstudio.microsoft.com/visual-cpp-build-tools')
+    elif detect_os() == 'Linux':
+        bld_tools = True
+
+    return cuda, bld_tools
+
+def install_base_dependencies(os, backend):
+    dependancies = {'sentence-transformers', 'openai-whisper', 'aiohttp_cors', 'aiohttp', 'transformers'}
+    already_installed = {pkg.key for pkg in pkg_resources.working_set}
+    missing = dependancies - already_installed
+
+    print(f'Attempting to install torch/torchvision/torchaudio for {backend}...')
+    if backend == 'cuda':
+        cuda, info = get_cuda_version()
+        if cuda:
+            if float(info) >= 12.1:
+                for i in ('torch', 'torchvision', 'torchaudio'):
+                    dependancies.add(i)
+                print('CUDA version is 12.1 (or higher), torch/torchvision/torchaudio will be installed normally.')
+            elif float(info) == 11.8:
+                torch_pkgs = {'torch', 'torchvision', 'torchaudio'} - already_installed
+                print('CUDA version is 11.8, installing torch/torchvision/torchaudio for CUDA 11.8...')
+                subprocess.check_call([sys.executable, '-m', 'pip', 'install', *torch_pkgs, '--index-url', 'https://download.pytorch.org/whl/cu118'])
+            elif float(info) < 11.8:
+                print('CUDA version is below 11.8, please upgrade to at least 11.8. Unable to install torch/torchvision/torchaudio.')
+                exit(1)
+        else:
+            print('CUDA not found (or it could not be detected), please install CUDA Toolkit from https://developer.nvidia.com/cuda-toolkit to use this backend or use a different backend.')
+            exit(1)
+
+    elif backend == 'openblas':
+        print('Using CPU backend, installing torch/torchvision/torchaudio for CPU...')
+        torch_pkgs = {'torch', 'torchvision', 'torchaudio'} - already_installed
+        if torch_pkgs:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *torch_pkgs, '--index-url', 'https://download.pytorch.org/whl/cpu'])
+        else:
+            print('Torch/torchvision/torchaudio already installed.')
+
+    print('Checking and installing other dependencies...')
+
+    for package in (dependancies - missing):    
+        print(f'Already installed: {package}')
+    print(f'Installing base dependencies for {os}...')
+    if os == 'Linux':
+        if missing:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
+    elif os == 'Windows':
+        if missing:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
+
+def install_llm_backend(type):
+    if type == 'all':
+        print(type)
+    elif type == 'gguf':
+        print(type)
+    elif type == 'safetensors' or type == 'pkl':
+        print(type)
+
+def config_builder():
+    pass
+
+def dependancies_install():
+    print('----- Installing dependancies -----')
+    print(f'Detected operating system: {detect_os()}')
+    print('Checking potential prerequisites... (Based on your specific requirements, not all prerequisites may be required.)')
+    cuda, bld_tools = prereq_check()
+
+    backend = input_with_options('What backend do you want to use (cuda for NVIDIA GPUs, openblas for CPU)?', ['cuda', 'openblas'])
+    install_base_dependencies(detect_os(), backend)
+    model_file_ext = input_with_options(f'What large language model backend do you want to install?', ['gguf', 'safetensors', 'pkl', 'all']).lower()
+    install_llm_backend(model_file_ext)
+
+def menu():
+    print('----- Ame configuration tool -----')
+    print('1. Install dependancies and setup configuration')
+    print('2. Install dependancies only')
+    print('3. Setup configuration only')
+    options = input_with_options('What would you like to do?', ['1', '2', '3'])
+    if options == '1':
+        dependancies_install()
+        config_builder()
+    elif options == '2':
+        dependancies_install()
+    elif options == '3':
+        config_builder()
+
+if __name__ == '__main__':
+    menu()
+
