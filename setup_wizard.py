@@ -12,7 +12,7 @@ import pkg_resources
 
 def input_y_n(msg: str):
     while True:
-        y_or_n = input(msg + " (y/n)").lower().strip()
+        y_or_n = input(msg + ' (y/n)').lower().strip()
         if y_or_n == 'y' or y_or_n == 'n':
             return y_or_n
         else:
@@ -40,7 +40,7 @@ def get_cuda_version():
         for line in version_info.split('\n'):
             if 'release' in line:
                 return True, line.strip()
-        return False, "CUDA version information not found in nvcc output."
+        return False, 'CUDA version information not found in nvcc output.'
     except FileNotFoundError:
         try:
             result = subprocess.run(['nvidia-smi'], capture_output=True, text=True, check=True)
@@ -49,23 +49,23 @@ def get_cuda_version():
                     cuda_version = line.split('CUDA Version:')[1].strip().split()[0]
                     return True, cuda_version
         except FileNotFoundError:
-            return False, "Neither nvcc nor nvidia-smi found. CUDA is likely not installed."
+            return False, 'Neither nvcc nor nvidia-smi found. CUDA is likely not installed.'
 
 def check_bld_tools():
     import winreg
     try:
-        registry_key_path = r"SOFTWARE\Microsoft\VisualStudio\SxS\VS7"
-        registry_value_name = "17.0"
+        registry_key_path = r'SOFTWARE\Microsoft\VisualStudio\SxS\VS7'
+        registry_value_name = '17.0'
 
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, registry_key_path, 0, winreg.KEY_READ) as key:
             try:
                 install_path, regtype = winreg.QueryValueEx(key, registry_value_name)
                 if install_path:
-                    return True, f"Visual Studio Build Tools 2022 is installed at: {install_path}"
+                    return True, f'Visual Studio Build Tools 2022 is installed at: {install_path}'
             except FileNotFoundError:
-                return False, "Visual Studio Build Tools 2022 is not installed."
+                return False, 'Visual Studio Build Tools 2022 is not installed.'
     except FileNotFoundError:
-        return False, "Visual Studio registry key not found."
+        return False, 'Visual Studio registry key not found.'
     
 def prereq_check():
     cuda = False
@@ -111,7 +111,6 @@ def install_base_dependencies(os, backend):
         else:
             print('CUDA not found (or it could not be detected), please install CUDA Toolkit from https://developer.nvidia.com/cuda-toolkit to use this backend or use a different backend.')
             exit(1)
-
     elif backend == 'openblas':
         print('Using CPU backend, installing torch/torchvision/torchaudio for CPU...')
         torch_pkgs = {'torch', 'torchvision', 'torchaudio'} - already_installed
@@ -125,23 +124,28 @@ def install_base_dependencies(os, backend):
     for package in (dependancies - missing):    
         print(f'Already installed: {package}')
     print(f'Installing base dependencies for {os}...')
-    if os == 'Linux':
-        if missing:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
-    elif os == 'Windows':
-        if missing:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
 
-def install_llm_backend(type):
+def install_llm_backend(type, hardware):
     if type == 'all':
-        print(type)
+        pass
     elif type == 'gguf':
-        print(type)
-    elif type == 'safetensors' or type == 'pkl':
-        print(type)
+        print('Installing llama-cpp-python for gguf/ggml...')
+        if hardware == 'openblas':
+            cmake_args = '-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS'
+        elif hardware == 'cuda':
+            cmake_args = '-DLLAMA_CUDA=on'
+        if detect_os() == 'Windows':
+            os.environ['CMAKE_ARGS'] = cmake_args
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'llama-cpp-python'])
+        elif detect_os() in ['Linux', 'Darwin']:
+            subprocess.check_call(['pip', 'install', 'llama-cpp-python'], env={'CMAKE_ARGS': cmake_args})
+    elif type in ['safetensors', 'pkl']:
+        # Handle other cases here if needed
+        pass
 
 def config_builder():
-    pass
+    print('----- Building config -----')
 
 def dependancies_install():
     print('----- Installing dependancies -----')
@@ -149,10 +153,10 @@ def dependancies_install():
     print('Checking potential prerequisites... (Based on your specific requirements, not all prerequisites may be required.)')
     cuda, bld_tools = prereq_check()
 
-    backend = input_with_options('What backend do you want to use (cuda for NVIDIA GPUs, openblas for CPU)?', ['cuda', 'openblas'])
-    install_base_dependencies(detect_os(), backend)
+    backend_hardware = input_with_options('What backend do you want to use (cuda for NVIDIA GPUs, openblas for CPU)?', ['cuda', 'openblas'])
+    install_base_dependencies(detect_os(), backend_hardware)
     model_file_ext = input_with_options(f'What large language model backend do you want to install?', ['gguf', 'safetensors', 'pkl', 'all']).lower()
-    install_llm_backend(model_file_ext)
+    install_llm_backend(model_file_ext, backend_hardware)
 
 def menu():
     print('----- Ame configuration tool -----')
