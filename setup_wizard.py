@@ -40,9 +40,9 @@ def get_cuda_version():
                     if part == 'release':
                         return True, parts[i + 1].rstrip(',')
     except subprocess.CalledProcessError:
-        return False, "CUDA is not installed or nvcc is not found in PATH."
+        return False, 'CUDA is not installed or nvcc is not found in PATH.'
     except FileNotFoundError:
-        return False, "nvcc command not found. Make sure CUDA is installed and nvcc is in PATH."
+        return False, 'nvcc command not found. Make sure CUDA is installed and nvcc is in PATH.'
 
 def check_bld_tools():
     import winreg
@@ -163,6 +163,40 @@ def install_vision_backend(type, hardware):
 
 def config_builder():
     print('----- Building config -----')
+    print('For default values, leave input blank and press enter, ensure input value types are right, config is not protected .')
+    verbose = input_y_n("Do you want Ame's controller to be verbose? (default: y)") or True
+    log = input_y_n('Do you want Ame to log to a file? (default: y)') or True 
+    assistant_name = str(input("What do you want your assistant's name to be? (default: Ame): ")) or 'Ame'
+    memory_enabled = input_y_n('Do you want to enable long term memory via hyperdb? (default: y)') or True
+    memory_path = str(input('Where do you want to store your memory? (default: auto): ')) or None
+    language_model_path = str(input('Where do you want to store your language model? (default: auto): ')) or None
+    max_tokens = int(input('What is the maximum number of tokens you want to generate each run? (default: 512): ')) or 512
+    temperature = float(input('What temperature do you want to use for generation? (default: 0.85): ')) or 0.85
+    context_size = int(input('What is the context length of the model? (default: auto): ')) or 0
+    top_p = float(input('What top_p value do you want to use for generation? (default: 0.95): ')) or 0.95
+    top_k = int(input('What top_k value do you want to use for generation? (default: 40): ')) or 40
+    gpu = input_y_n('Do you want to use a GPU for generation? (only if you have CUDA)')
+    gpu_layers = int(input('How many layers do you want to use on the GPU? (default: auto): ')) or -1
+    threads = int(input('How many threads do you want to use for generation? (default: auto): ')) or None
+    virtual_context_limit = int(input('What is the virtual context limit? [to prevent out of vram errors] (default: 2048): ')) or 2048
+    personality_prompt = str(input('What is the personality prompt? (default: None): ')) or None
+    model_file_ext = str(input('What is the model file extension? [this is important, it determines what backend is used] (default: .gguf): ')) or '.gguf'
+    model_format = str(input('What is the model format? (default: chatml): ')) or 'chatml'
+    lora = input_y_n('Do you want to use a LoRA? (default: n)') or False
+    if lora:
+        lora_path = str(input('Where is your LoRA located?: ')) or None
+    vision_enabled = input_y_n('Do you want to enable vision? (default: y)') or True
+    if vision_enabled:
+        vision_backend = str(input_with_options('What vision backend do you want to use? [note: llava is a seperate LLM that still requires CLIP, entering clip here enables standalone clip that works with any LLM] (default: clip)', ['clip', 'llava'])) or 'clip'
+        if vision_backend == 'clip':
+            clip_path = str(input('Where is your CLIP model located?: ')) or None
+        elif vision_backend == 'llava':
+            llava_clip_path = str(input('Where is your CLIP model located?: ')) or None
+    tts_enabled = input_y_n('Do you want to enable TTS? [powered by bark] (default: y)') or True
+    if tts_enabled:
+        tts_temp = float(input('What temperature do you want to use for TTS? (default: 0.6): ')) or 0.6
+        tts_model_path = str(input('Where is your TTS model located? (default: auto): ')) or None
+    
 
 def dependancies_install():
     print('----- Installing dependancies -----')
