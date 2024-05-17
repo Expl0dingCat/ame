@@ -4,17 +4,13 @@ import sys
 import subprocess
 import pkg_resources
 
-# TODO
-# - When installing base dependancies, fix CUDA detection with nvcc
-# - Add other dependancies in install_base_dependencies
-# - Add other dependancies for specific cases ()
-# - a lot more
-
 def input_y_n(msg: str):
     while True:
-        y_or_n = input(msg + ' (y/n)').lower().strip()
-        if y_or_n == 'y' or y_or_n == 'n':
-            return y_or_n
+        y_or_n = input(msg + ' (y/n): ').lower().strip()
+        if y_or_n == 'y':
+            return True
+        elif y_or_n == 'n':
+            return False
         else:
             print("Invalid input! Please input 'y' or 'n'.")
 
@@ -143,8 +139,27 @@ def install_llm_backend(type, hardware):
         print('Installing safetensors to load .safetensors...')
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'safetensors'])
 
-    if type == 'pkl':
+    if type in ['all', 'pkl']:
         print('Pickle selected, no additional installation required (.pkl models are not recommended, use .safetensors).')
+    
+    print('LLM backend installed.')
+
+def install_vision_backend(type, hardware):
+    print('Installing vision backend...')
+    
+    if type in ['all', 'llava']:
+        print('Installing LLaVA requirements...')
+        if input_y_n('LLaVA support is provided by llama-cpp-python, do you want to proceed?'):
+            install_llm_backend('gguf', hardware)
+        else:
+            print('llama-cpp-python will not be installed, LLaVA will not be supported.')
+    
+    if type in ['all', 'clip']:
+        print('Installing CLIP and its requirements...')
+        reqs = {'git+https://github.com/openai/CLIP.git', 'ftfy', 'regex', 'tqdm'}
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', *reqs])
+    
+    print('Vision backend installed.')
 
 def config_builder():
     print('----- Building config -----')
@@ -157,8 +172,13 @@ def dependancies_install():
 
     backend_hardware = input_with_options('What backend do you want to use (cuda for NVIDIA GPUs, openblas for CPU)?', ['cuda', 'openblas'])
     install_base_dependencies(detect_os(), backend_hardware)
-    model_file_ext = input_with_options(f'What large language model backend do you want to install?', ['gguf', 'safetensors', 'pkl', 'all']).lower()
+    model_file_ext = input_with_options(f'What large language model backend do you want to install?', ['gguf', 'safetensors', 'pkl', 'all'])
     install_llm_backend(model_file_ext, backend_hardware)
+    vision_backend = input_y_n('Do you want to install a vision backend?')
+    if vision_backend:
+        vision_backend_type = input_with_options('What vision backend do you want to install?', ['clip', 'llava', 'all'])
+        install_vision_backend(vision_backend_type, backend_hardware)
+    print('All dependancies installed.')
 
 def menu():
     print('----- Ame configuration tool -----')
