@@ -39,17 +39,14 @@ def get_cuda_version():
         version_info = result.stdout
         for line in version_info.split('\n'):
             if 'release' in line:
-                return True, line.strip()
-        return False, 'CUDA version information not found in nvcc output.'
+                parts = line.split()
+                for i, part in enumerate(parts):
+                    if part == 'release':
+                        return True, parts[i + 1].rstrip(',')
+    except subprocess.CalledProcessError:
+        return False, "CUDA is not installed or nvcc is not found in PATH."
     except FileNotFoundError:
-        try:
-            result = subprocess.run(['nvidia-smi'], capture_output=True, text=True, check=True)
-            for line in result.stdout.split('\n'):
-                if 'CUDA Version' in line:
-                    cuda_version = line.split('CUDA Version:')[1].strip().split()[0]
-                    return True, cuda_version
-        except FileNotFoundError:
-            return False, 'Neither nvcc nor nvidia-smi found. CUDA is likely not installed.'
+        return False, "nvcc command not found. Make sure CUDA is installed and nvcc is in PATH."
 
 def check_bld_tools():
     import winreg
@@ -127,22 +124,27 @@ def install_base_dependencies(os, backend):
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
 
 def install_llm_backend(type, hardware):
-    if type == 'all':
-        pass
-    elif type == 'gguf':
-        print('Installing llama-cpp-python for gguf/ggml...')
+    if type in ['all', 'gguf']:
         if hardware == 'openblas':
             cmake_args = '-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS'
         elif hardware == 'cuda':
             cmake_args = '-DLLAMA_CUDA=on'
-        if detect_os() == 'Windows':
+
+        os_name = detect_os()
+        if os_name == 'Windows':
             os.environ['CMAKE_ARGS'] = cmake_args
+            print(f'Detected Windows, installing llama-cpp-python for Windows with cmake args: {cmake_args}...')
             subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'llama-cpp-python'])
-        elif detect_os() in ['Linux', 'Darwin']:
+        elif os_name in ['Linux', 'Darwin']:
+            print(f'Detected {os_name}, installing llama-cpp-python for {os_name} with cmake args: {cmake_args}...')
             subprocess.check_call(['pip', 'install', 'llama-cpp-python'], env={'CMAKE_ARGS': cmake_args})
-    elif type in ['safetensors', 'pkl']:
-        # Handle other cases here if needed
-        pass
+
+    if type in ['all', 'safetensors']:
+        print('Installing safetensors to load .safetensors...')
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'safetensors'])
+
+    if type == 'pkl':
+        print('Pickle selected, no additional installation required (.pkl models are not recommended, use .safetensors).')
 
 def config_builder():
     print('----- Building config -----')
