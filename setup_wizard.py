@@ -164,6 +164,11 @@ def install_vision_backend(type, hardware):
 def config_builder():
     print('----- Building config -----')
     print('For default values, leave input blank and press enter, ensure input value types are right, config is not protected .')
+    lora_path = None
+    clip_path = None
+    llava_clip_path = None
+    tts_temp = 0.6
+    tts_model_path = None
     verbose = input_y_n("Do you want Ame's controller to be verbose? (default: y)") or True
     log = input_y_n('Do you want Ame to log to a file? (default: y)') or True 
     assistant_name = str(input("What do you want your assistant's name to be? (default: Ame): ")) or 'Ame'

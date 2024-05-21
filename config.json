@@ -29,8 +29,15 @@
     },
     "vision": {
         "enabled": false,
-        "use_CLIP" : false,
-        "model_path": null
+        "standalone_clip": {
+            "enabled": false,
+            "model_path": null
+        },
+        "llava":
+        {
+            "enabled": false,
+            "clip_path": null
+        }
     },
     "tts": {
         "enabled": false,
