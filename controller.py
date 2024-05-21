@@ -9,7 +9,7 @@ from datetime import datetime
 class controller:
     def __init__(self, config_path='config.json'):
         # Initialize variables
-        self.reload_config(config_path)
+        self.load_config(config_path)
         
         if self.log:
             configure_logging()
@@ -173,7 +173,7 @@ class controller:
 
         self.vprint('All initialized. Controller ready and on standby.')
 
-    def reload_config(self, config_path='config.json'):
+    def load_config(self, config_path='config.json'):
         try:
             with open(config_path) as config_file:
                 config = json.load(config_file)
@@ -207,6 +207,14 @@ class controller:
         self.vision_enabled = config['vision']['enabled']
         if self.vision_enabled:
             self.vision_model = config['vision']['model_path']
+            self.vision_standalone_clip_enabled = config['vision']['standalone_clip']['enabled']
+            if self.vision_standalone_clip_enabled:
+                self.vision_standalone_clip_model = config['vision']['standalone_clip']['model_path']
+            self.llava_enabled = config['vision']['llava']['enabled']
+            if self.llava_enabled:
+                self.llava_clip_model = config['vision']['llava']['clip_path']
+            if self.vision_standalone_clip_enabled and self.llava_enabled:
+                SystemError('Both standalone_clip and llava are enabled, only one can be enabled at a time.')
         self.tts_enabled = config['tts']['enabled']
         if self.tts_enabled:
             self.text_to_speech_model = config['tts']['model_path']

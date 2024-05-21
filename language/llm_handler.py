@@ -20,9 +20,9 @@ class ai:
     def load_llm(self, device):
         if self.model_file_ext == '.gguf' or self.model_file_ext == '.ggml':
             if device == "cuda":
-                self.llm = Llama(model_path=self.model_pth, verbose=self.verbose, n_gpu_layers=self.layers, n_threads=self.threads, n_ctx=self.context, chat_format=format, lora_pth=self.lora_pth)
+                self.llm = Llama(model_path=self.model_pth, verbose=self.verbose, n_gpu_layers=self.layers, n_threads=self.threads, n_ctx=self.context, chat_format=self.format, lora_pth=self.lora_pth)
             else:
-                self.llm = Llama(model_path=self.model_pth, verbose=self.verbose, n_threads=self.threads, n_ctx=self.context, chat_format=format, lora_path=self.lora_pth)
+                self.llm = Llama(model_path=self.model_pth, verbose=self.verbose, n_threads=self.threads, n_ctx=self.context, chat_format=self.format, lora_path=self.lora_pth)
         elif self.model_file_ext == '.safetensors':
             pass
 
