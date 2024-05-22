@@ -44,7 +44,12 @@ class controller:
             self.vprint('Memory disabled. Enable memory in the config file.')
         
         if not self.debug:
-            if self.modules_enabled:
+            if self.modules_enabled or self.modules_override_debug:
+                self.eval_mode = False
+                if self.modules_override_debug:
+                    self.vprint('WARNING: override_debug is enabled, modules will remain active. This is not recommended unless debugging modules.', logging.WARNING)
+                    self.vprint('Debug override enabled: Debug mode enabled, modules enabled, eval mode enabled.')            
+                    self.eval_mode = True
                 from module_handler import modules
                 self.vprint('Initializing modules...')
                 if not self.modules_json_path:
@@ -61,36 +66,19 @@ class controller:
                         self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
                     else:
                         self.modules_model = None
-                self.modules = modules(self.modules_model, self.modules_vectorizer, self.modules_json_path)
+                        self.modules = modules(self.modules_model, self.modules_vectorizer, self.modules_json_path)
+                else:
+                    self.vprint('Naive Bayes classifier is disabled, modules will be treated as undetectable.')
+                    self.modules = modules(None, None, self.modules_json_path)
                 self.module_output = None
             else:
                 self.vprint('Modules are disabled. Enable modules in the config file.')
-            self.eval_mode = False
-        elif self.modules_override_debug:
-            self.vprint('WARNING: override_debug is enabled, modules will remain active. This is not recommended unless debugging modules.', logging.WARNING)
-            self.vprint('Debug mode enabled, modules enabled, eval mode enabled, override_debug enabled.')
-            from module_handler import modules
-            if not self.modules_json_path:
-                self.vprint(f'No modules path specified, using default: {parent_dir}/modules/modules.json')
-                self.modules_json_path = f'{parent_dir}/modules/modules.json'
-            if self.naive_bayes_enabled:
-                if not self.modules_vectorizer:
-                    self.vprint(f'No module vectorizer specified, using default: {parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl')
-                    self.modules_vectorizer = f'{parent_dir}/module_engine/pickles/tfidf_vectorizer.pkl'
-                else:
-                    self.modules_vectorizer = None
-                if not self.modules_model:
-                    self.vprint(f'No module model specified, using default: {parent_dir}/module_engine/pickles/naive_bayes_model.pkl')
-                    self.modules_model = f'{parent_dir}/module_engine/pickles/naive_bayes_model.pkl'
-                else:
-                    self.modules_model = None
-            self.modules = modules(self.modules_model, self.modules_vectorizer, self.modules_json_path)
-            self.module_output = None
-            self.eval_mode = True
         else:
-            self.vprint('Debug mode is enabled, modules are disabled, eval mode enabled.')
+            self.vprint('Debug mode is enabled, modules are disabled, eval mode enabled, logging and verbose enabled.')
             self.eval_mode = True
-        
+            self.log = True
+            self.verbose = True
+
         if self.language_enabled:
             if self.personality_prompt:
                 if re.match(r'^([^:]+\..+)|(\/.*)|([A-Za-z]:\\.*)$', self.personality_prompt):
