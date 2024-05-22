@@ -79,6 +79,10 @@ python client.py
 ```
 
 ### Discord bot
+Move `discord-bot.py` (interfaces/discord/) to the root folder, enter in your bot's token and then run:
+```bash
+python discord-bot.py
+```
 
 ### API
 Ame's API allows for programmatic use of Ame's entire system. Here is an example:
