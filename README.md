@@ -34,8 +34,12 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 
 **Long-term Memory**: Ame utilizes a vector database that optimizes memory storage and retrieval, enabling Ame to access data that goes beyond the context limit of its model.
 
+**Easy setup and configuration**: An automatic setup wizard allows for 3 click installation of dependancies and easy configuration setup.
+
+
 ### Full feature list
 `*` means the feature is yet to be implemented, see **[progress](#progress-v1)**, this list does not include features that may be coming in **[v2](#plans-for-v2-)**.
+- MIT Licensed
 - Support for any LLaMA GGML/GGUF (via llama.cpp)
 - Developer-friendly module platform
 - Long-term memory
@@ -46,43 +50,22 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 - Pre-built server and client
 - Remote server command
 - Client UI`*`
-- Telegram integrations`*`
-- Discord integrations`*`
+- Discord integrations
 - Fully open-source
 - Easy-to-use API
 
 ## Usage ⚙️
 
-### Install requirements (Windows)
+### Install & Setup
+
 ```bash
-pip3 install sentence-transformers
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-set CMAKE_ARGS="-DLLAMA_CUBLAS=on"
-set FORCE_CMAKE=1
-pip3 install llama-cpp-python --no-cache-dir
-pip3 install openai-whisper
-pip3 install aiohttp_cors
-pip3 install pyaudio
-pip3 install aiohttp
-pip3 install keyboard
-pip3 install transformers
-pip3 install git+https://github.com/suno-ai/bark.git
-```
+git clone https://github.com/Expl0dingCat/Ame.git
+``` 
 
-### Install requirements (Linux)
+Run `setup_wizard.py` in the root directory, this will automatically install the dependancies you do not have and setup your config. This supports Linux (including distributions) and Windows. 
 
-
-- You must have CUDA 11.8
-- You must use torch (and its associated packages) version 2.0.0+ or it will break
-- If you need to reinstall torch, purge it before doing so
-- Ame was designed on Python 3.10.11
+- Ame was designed on Python 3.10.11 (should be compatible with lower versions but not officially supported)
 - If llama-cpp-python is using your CPU when use_gpu is set to `true`, ensure you have nvidia-cuda-toolkit
-
-```
-sudo apt install nvidia-cuda-toolkit
-CUDACXX=/usr/local/cuda-12/bin/nvcc CMAKE_ARGS="-DLLAMA_CUBLAS=on
--DCMAKE_CUDA_ARCHITECTURES=all-major" FORCE_CMAKE=1 pip install llama-cpp-python --no-cache-dir --force-reinstall --upgrade
-```
 
 ### Server/client
 Move `server.py` (interfaces/server-client/) to the root folder then run:
