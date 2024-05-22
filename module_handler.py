@@ -25,6 +25,7 @@ class modules:
                 self.logger.error(f"Error loading models, please check the model and vectorizer paths. Detected modules will not be loaded.")
                 self.detectable_available = False
         else:
+            self.detectable_available = False
             self.logger.info("Naive bayes classifier disabled, using LLM for module detection, detectable modules will be treated as non-detectable.")
         self.load_modules()
 
@@ -111,5 +112,3 @@ class modules:
 if __name__ == '__main__':
     print('This is a handler, it is not meant to be run directly.')
     pass
-    
-
