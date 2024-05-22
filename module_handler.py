@@ -6,7 +6,7 @@ import logging
 from logs.logging_config import configure_logging
 
 class modules:
-    def __init__(self, model_path, vectorizer_path=None, modulesjson_path=None) -> None:
+    def __init__(self, model_path, vectorizer_path, modulesjson_path) -> None:
         configure_logging()
         self.logger = logging.getLogger(__name__)
 
