@@ -260,6 +260,10 @@ class controller:
         output = re.sub(r'^[^{]*|[^}]*$', '', remove_formatting)
 
         return output
+    
+    def clear_conversation(self):
+        self.current = []
+        self.vprint('Conversation cleared.')
 
     def user_cmds(self, input):
         if input == 'clear_conversation':
@@ -342,7 +346,7 @@ class controller:
         
         system_prompt = '\n'.join([
             self.personality_prompt if self.personality_prompt else '',
-            f'{self.assistant_name} may use any of the following information to aid them in their responses:',
+            f'You are {self.assistant_name} and you may use any of the following information to aid you in your responses:',
             f'Current time: {datetime.now().strftime("%H:%M:%S")}',
             f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
             f'Extra information: {mod_prompt}' if mod_prompt else '',
