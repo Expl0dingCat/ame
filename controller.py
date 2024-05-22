@@ -435,7 +435,7 @@ class controller:
                     self.vprint(f"Passing input to LLM to detect modules among {undetectable_modules}")
                     for i in undetectable_modules:
                         if self.modules.get_arguments(i):
-                            arguments = ''.join(self.modules.get_arguments(i))
+                            arguments = ', '.join(self.modules.get_arguments(i))
                             with_args += [f'{i} ({arguments})']
                         else:
                             with_args += [i]
