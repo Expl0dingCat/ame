@@ -6,7 +6,7 @@ from discord.ext import commands
 token = ''
 
 description = 'Ame discord interface.'
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.messages = True
 intents.guilds = True
 intents.dm_messages = True  # Enable direct message intents
