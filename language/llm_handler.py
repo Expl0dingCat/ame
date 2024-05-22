@@ -36,7 +36,8 @@ class ai:
             text = response['choices'][0]['message']['content']
         elif self.model_file_ext == '.safetensors':
             pass
-            return text.strip(), full_msg, prompt_tokens, completion_tokens
+        
+        return text.strip(), full_msg, prompt_tokens, completion_tokens
     
     def format_prompt(self, messages, format="chatml", with_assistant_prompt=True):
         result = ""

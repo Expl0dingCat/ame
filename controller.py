@@ -347,7 +347,7 @@ class controller:
             f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
             f'Extra information: {mod_prompt}' if mod_prompt else '',
             f'{self.assistant_name} remembers this past conversation that may be relevant to the current conversation:',
-            *past,
+            str(past),
         ])
 
         prompt = [
@@ -391,11 +391,10 @@ class controller:
                 self.current = []
                 self.vprint('Conversation ended. Short-term memory cleared.')
             else:
+                self.current.append(prompt[-1])
+                self.current.append(full)
                 if self.memory_enabled:
                     self.memory.memorize([prompt[-1], full])
-                    self.current.append(prompt[-1])
-                    self.current.append(full)
-
                     self.memory.save_memory(self.memory_path)
                 else:
                     self.vprint('Memory disabled, skipping memory saving...')

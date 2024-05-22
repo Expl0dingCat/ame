@@ -84,7 +84,6 @@ def prereq_check():
 def install_base_dependencies(os, backend):
     dependancies = {'sentence-transformers', 'openai-whisper', 'aiohttp_cors', 'aiohttp', 'transformers'}
     already_installed = {pkg.key for pkg in pkg_resources.working_set}
-    missing = dependancies - already_installed
 
     print(f'Attempting to install torch/torchvision/torchaudio for {backend}...')
     if backend == 'cuda':
@@ -96,8 +95,9 @@ def install_base_dependencies(os, backend):
                 print('CUDA version is 12.1 (or higher), torch/torchvision/torchaudio will be installed normally.')
             elif float(info) == 11.8:
                 torch_pkgs = {'torch', 'torchvision', 'torchaudio'} - already_installed
-                print('CUDA version is 11.8, installing torch/torchvision/torchaudio for CUDA 11.8...')
-                subprocess.check_call([sys.executable, '-m', 'pip', 'install', *torch_pkgs, '--index-url', 'https://download.pytorch.org/whl/cu118'])
+                if torch_pkgs:
+                    print('CUDA version is 11.8, installing torch/torchvision/torchaudio for CUDA 11.8...')
+                    subprocess.check_call([sys.executable, '-m', 'pip', 'install', *torch_pkgs, '--index-url', 'https://download.pytorch.org/whl/cu118'])
             elif float(info) < 11.8:
                 print('CUDA version is below 11.8, please upgrade to at least 11.8. Unable to install torch/torchvision/torchaudio.')
                 exit(1)
@@ -113,7 +113,8 @@ def install_base_dependencies(os, backend):
             print('Torch/torchvision/torchaudio already installed.')
 
     print('Checking and installing other dependencies...')
-
+    
+    missing = dependancies - already_installed
     for package in (dependancies - missing):    
         print(f'Already installed: {package}')
     print(f'Installing base dependencies for {os}...')
