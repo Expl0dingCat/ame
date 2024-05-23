@@ -34,7 +34,7 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 
 **Long-term Memory**: Ame utilizes a vector database that optimizes memory storage and retrieval, enabling Ame to access data that goes beyond the context limit of its model.
 
-**Easy setup and configuration**: An automatic setup wizard allows for 3 click installation of dependancies and easy configuration setup.
+**Easy setup and configuration**: An automatic setup wizard allows for 3 click installation of dependencies and easy configuration setup.
 
 
 ### Full feature list
@@ -62,7 +62,7 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 git clone https://github.com/Expl0dingCat/Ame.git
 ``` 
 
-Run `setup_wizard.py` in the root directory, this will automatically install the dependancies you do not have and setup your config. This supports Linux (including distributions) and Windows. 
+Run `setup_wizard.py` in the root directory, this will automatically install the dependencies you do not have and setup your config. This supports Linux (including distributions) and Windows. 
 
 - Ame was designed on Python 3.10.11 (should be compatible with lower versions but not officially supported)
 - If llama-cpp-python is using your CPU when use_gpu is set to `true`, ensure you have nvidia-cuda-toolkit
