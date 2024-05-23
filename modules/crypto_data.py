@@ -1,10 +1,8 @@
 # pip install -U pycoingecko
-from datetime import datetime, timedelta
 from pycoingecko import CoinGeckoAPI
 
 now = datetime.now()
 
-current_time = now.strftime("%H:%M:%S")
 cg = CoinGeckoAPI()
 
 def get_info(full_crypto_name):
