@@ -21,6 +21,7 @@ Ame is in an incomplete state and is being developed by me and only me, expect p
 - **[Acknowledgements 🙏](#acknowledgements-)**
 - **[License ⚖️](#license-%EF%B8%8F)**
 
+![Key Features](https://cdn.discordapp.com/attachments/1065506981504360509/1243021209059201024/Key_Features.png?ex=664ff536&is=664ea3b6&hm=25661d8e7da5e42645c83043f535f9e60b7043e79cfe9304c750b743df3eab24&)
 ## Key features 🚀
 **Customizable Modules**: Ame's modular design allows for easy customization and extensibility. Each module serves a specific function, such as managing calendars, providing updates, or assisting with personal tasks—Ame adapts to you. Developers can create their own modules or modify existing ones to tailor Ame's capabilities to their specific requirements.
 
