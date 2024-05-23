@@ -1,4 +1,4 @@
-![Banner](https://repository-images.githubusercontent.com/663230405/f0fb87bc-7596-4fac-81d2-19139cb10aaa)
+![Banner](https://repository-images.githubusercontent.com/663230405/3d3fa7a7-d37c-41a8-9517-793b50ea616d)
 
 ## Setting a new standard for local virtual assistants 💧
 
