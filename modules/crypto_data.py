@@ -1,8 +1,6 @@
 # pip install -U pycoingecko
 from pycoingecko import CoinGeckoAPI
 
-now = datetime.now()
-
 cg = CoinGeckoAPI()
 
 def get_info(full_crypto_name):
