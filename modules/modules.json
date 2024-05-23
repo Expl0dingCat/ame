@@ -1,16 +1,23 @@
 [
     {
         "id": 0,
-        "name": "example",
-        "args": false,
-        "function": "test",
-        "detectable": true
-    },
-    {
-        "id": 1,
         "name": "weather",
         "args": ["city"],
         "function": "get_weather",
+        "detectable": false
+    },
+    {
+        "id": 1,
+        "name": "stock_data",
+        "args": ["ticker", "date"],
+        "function": "get_info",
+        "detectable": false
+    },
+    {
+        "id": 2,
+        "name": "crypto_data",
+        "args": ["full_crypto_name"],
+        "function": "get_info",
         "detectable": false
     }
 ]
