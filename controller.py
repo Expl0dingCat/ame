@@ -455,7 +455,7 @@ class controller:
                             },
                             {
                                 "role": "user",
-                                "content": '{"user_prompt": "Whats the weather like in London right now?","Modules": ["weather (city)", "deepL (text)", "lighting_control"]}'
+                                "content": '{"user_prompt": "Whats the weather like in London right now?","Modules": ["weather (city)", "translate (text)", "lighting_control"]}'
                             },
                             {
                                 "role": "assistant",
@@ -463,7 +463,7 @@ class controller:
                             },
                             {   
                                 "role": "user", 
-                                "content": '{"user_prompt": "Hello!","modules": ["weather (city)", "deepL (text)"]}'
+                                "content": '{"user_prompt": "Hello!","modules": ["weather (city)", "translate (text)"]}'
                             },
                             {
                                 "role": "assistant",
