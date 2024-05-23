@@ -445,7 +445,8 @@ class controller:
                         llm_input = str({"user_prompt": str(user_input), "modules": with_args})
                         self.vprint(f'Input to LLM: {llm_input}')
 
-                        system_prompt = 'Predict which module is being called (and extract arguments) based on user input, return module name and arguments in proper JSON format. Return null if no module is detected, the module detected is not listed or if no arguments are needed'
+                        context = self.current[-5:] # get last 5 entries for context
+                        system_prompt = f'Predict which module is being called (and extract arguments) based on user input, return module name and arguments in proper JSON format. Return null if no module is detected, the module detected is not listed or if no arguments are needed. Context is given prior to the user input, please use that to determine modules.'
 
                         prompt = [
                             {
@@ -476,6 +477,7 @@ class controller:
                                 "role": "assistant",
                                 "content": '{"module": "lighting_control", "args": null}'
                             },
+                            *context,
                             {
                                 "role": "user",
                                 "content": llm_input
