@@ -15,6 +15,7 @@ class modules:
             self.module_json = json.load(open(modulesjson_path, "r"))
         except Exception:
             self.logger.error(f"Error loading modules json, please check the modules json path.")
+            self.module_json = []
 
         if vectorizer_path and model_path:
             self.logger.info("Naive bayes classifier enabled, loading models...")
