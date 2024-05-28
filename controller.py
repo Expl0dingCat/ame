@@ -148,18 +148,28 @@ class controller:
         
         if self.vision_enabled:
             from vision.vision_handler import vision
+
             self.vprint('Initializing vision engine...')
-            if not self.vision_model:
-                self.vprint('No vision model specified, using default: default vision model')
-                self.vision = vision('default vision model')
-            else:    
-                self.vision = vision(self.vision_model)
+
+            if self.vision_standalone_clip_enabled:
+                if self.vision_standalone_clip_model:
+                    self.vision = vision(self.vision_mode, self.vision_standalone_clip_model)
+                else:
+                    self.vprint('No vision model specified, using default: def')
+            elif self.llava_enabled:
+                if self.vision_standalone_clip_model:
+                    self.vision = vision(self.vision_mode, self.vision_standalone_clip_model)
+                else:
+                    self.vprint('No vision model specified, using default: def')
+        else:
+            self.vprint('Vision disabled. Enable vision in the config file.')
 
         if self.weeb:
             self.vprint('Weeb mode enabled, overriding personality prompt and enabling vtuber.')
             self.personality_prompt = f"Warm and Approachable: {self.assistant_name} has an inviting aura, making everyone feel comfortable around her. She greets others with a friendly smile and genuine interest in their well-being.\nPlayfully Flirtatious: She's not afraid to show her affectionate side, playfully teasing and flirting with her crush or close friends, all while blushing in an endearing manner.\nBright and Optimistic: {self.assistant_name}'s positive outlook on life is infectious. She encourages others during tough times and cheers them up with her cheerful demeanor.\nRespectful and Empathetic: {self.assistant_name} treats everyone with kindness and respect, genuinely listening to their thoughts and feelings. She's a great confidante due to her empathetic nature.\nNature Enthusiast: Whether it's stargazing on a clear night or enjoying a peaceful walk in the woods, {self.assistant_name} finds solace and wonder in the beauty of nature.\nCharming Animal Whisperer: Animals seem drawn to {self.assistant_name}, and she communicates with them through gentle gestures and a soothing voice, creating an almost magical bond.\nAppearance:\n{self.assistant_name} stands at an average height with a petite and delicate frame. Her eyes are big and sparkling, resembling twinkling stars, while her long hair flows like a cascade of cherry blossom petals. She dresses in pastel-colored, frilly dresses adorned with cute accessories, often matching her appearance to her surroundings.\nBackground:\n{self.assistant_name} comes from a small, picturesque town surrounded by lush forests and enchanting landscapes. Growing up in harmony with nature, she developed her deep appreciation for the beauty that surrounds her. Her caring nature and ability to connect with animals earned her many friends, both human and furry alike."
 
-        self.vprint('All initialized. Controller ready and on standby.')
+        self.system_status_check()
+        self.vprint('All available systems initialized. Controller ready and on standby.')
 
     def load_config(self, config_path='config.json'):
         try:
@@ -194,7 +204,6 @@ class controller:
                 self.lora_model_path = config['language']['lora']['model_path']
         self.vision_enabled = config['vision']['enabled']
         if self.vision_enabled:
-            self.vision_model = config['vision']['model_path']
             self.vision_standalone_clip_enabled = config['vision']['standalone_clip']['enabled']
             if self.vision_standalone_clip_enabled:
                 self.vision_standalone_clip_model = config['vision']['standalone_clip']['model_path']
@@ -202,7 +211,7 @@ class controller:
             if self.llava_enabled:
                 self.llava_clip_model = config['vision']['llava']['clip_path']
             if self.vision_standalone_clip_enabled and self.llava_enabled:
-                SystemError('Both standalone_clip and llava are enabled, only one can be enabled at a time.')
+                raise Exception('Both standalone_clip and llava are enabled, only one can be enabled at a time.')
         self.tts_enabled = config['tts']['enabled']
         if self.tts_enabled:
             self.text_to_speech_model = config['tts']['model_path']
@@ -237,6 +246,24 @@ class controller:
         else:
             self.vprint(f'Evaluation disabled, ignoring request: {input}')
             return 'Evaluation disabled. Enable debug mode to use evaluation.'
+
+    def system_status_check(self):
+        self.vprint('Checking system status...')
+        status = {
+            'memory': self.memory_enabled,
+            'language': self.language_enabled,
+            'vision': self.vision_enabled,
+            'tts': self.tts_enabled,
+            'stt': self.stt_enabled,
+            'modules': self.modules_enabled,
+            'weeb': self.weeb,
+            'debug': self.debug,
+            'verbose': self.verbose,
+            'log': self.log,
+            'eval_mode': self.eval_mode
+        }
+        self.vprint(f'System status: {status}')
+        return status
 
     def clean_output(self, input):
         # matches = re.findall(r'\{[^}]*\}', remove_formatting)
