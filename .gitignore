@@ -161,3 +161,4 @@ cython_debug/
 
 test.py
 language/model/
+config.json
