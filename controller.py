@@ -1,6 +1,7 @@
 import os
 import logging
 import json
+import shlex
 import glob
 import re
 from logs.logging_config import configure_logging
@@ -22,6 +23,14 @@ class controller:
         self.vprint('Initializing controller...')
         self.vprint(f'Assistant name: {self.assistant_name}')
         self.current = []
+        
+        self.user_cmds_map = {
+            'shutdown': self.shutdown,
+            'clear_context': self.clear_conversation,
+            'sys_prompt_override': self.system_prompt_override
+        }
+
+        self.ovrde_sys_prompt = False
         file_path = os.path.abspath(__name__)
         parent_dir = os.path.dirname(file_path)
 
@@ -276,20 +285,33 @@ class controller:
 
         return output
     
+    def shutdown(self):
+        self.vprint('Shutting down...')
+        exit()
+
     def clear_conversation(self):
         self.current = []
         self.vprint('Conversation cleared.')
 
-    def user_cmds(self, input):
-        if input == 'clear_conversation':
-            self.current = []
-            self.vprint('User cleared conversation history.')
-            return True
-        elif input == 'shutdown':
-            self.vprint('User sent shutdown command.', logging.WARNING)
-            exit()
+    def system_prompt_override(self, input=None):
+        if input:
+            self.system_prompt = input
+            self.ovrde_sys_prompt = True
+            self.vprint(f'System prompt overridden: {input}')
         else:
-            return False
+            self.system_prompt = None
+            self.ovrde_sys_prompt = False
+            self.vprint('System prompt override disabled.')
+
+    def user_cmds(self, input):
+        args = shlex.split(input)
+        command = args[0]
+
+        if command in self.user_cmds_map:
+            args = args[1:]
+            self.user_cmds_map[command](*args)
+
+            return True
 
     def full_pipeline(self, listen_input, img=None):
         self.vprint(f'Full system initiated, processing speech input...')
@@ -358,16 +380,19 @@ class controller:
             if self.module_output:
                 self.vprint(f'Module output detected, including in prompt: {self.module_output}')
                 mod_prompt = self.module_output
-        
-        system_prompt = '\n'.join([
-            self.personality_prompt if self.personality_prompt else '',
-            f'You are {self.assistant_name} and you may use any of the following information to aid you in your responses:',
-            f'Current time: {datetime.now().strftime("%H:%M:%S")}',
-            f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
-            f'Extra information: {mod_prompt}' if mod_prompt else '',
-            f'{self.assistant_name} remembers this past conversation that may be relevant to the current conversation:',
-            str(past),
-        ])
+
+        if self.ovrde_sys_prompt:
+            system_prompt = self.system_prompt
+        else:
+            system_prompt = '\n'.join([
+                self.personality_prompt if self.personality_prompt else '',
+                f'You are a helpful assistant named {self.assistant_name}. Developed by Expl0dingCat, your code is open source and licensed under the MIT License, it can be found here: https://github.com/Expl0dingCat/Ame .You may use any of the following information to aid you in your responses:',
+                f'Current time: {datetime.now().strftime("%H:%M:%S")}',
+                f'Current date: {datetime.now().strftime("%d/%m/%Y")}',
+                f'Extra information: {mod_prompt}' if mod_prompt else '',
+                f'{self.assistant_name} remembers this past conversation that may be relevant to the current conversation:',
+                str(past),
+            ])
 
         prompt = [
             {
