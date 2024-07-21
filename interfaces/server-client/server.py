@@ -38,6 +38,7 @@ async def handle_speak(request):
     response = {'userinput': userinput, 'output': output}
     return web.json_response(response, headers={'X-Audio-Output': audio_output})
 
+
 async def handle_full(request):
     if request.content_type == 'multipart/form-data':
         reader = await request.multipart()
@@ -53,9 +54,12 @@ async def handle_full(request):
         if audio_output is not None:
             with open(audio_output, 'rb') as audio_file:
                 audio_bytes = audio_file.read()
+        else:
+            audio_bytes = ""
 
-        response = {'userinput': userinput, 'output': output}
         headers = {'Audio-Output': audio_bytes}
+        response = {'userinput': userinput, 'output': output}
+        
         return web.json_response(response, headers=headers)
     else:
         data = await request.json()
@@ -65,13 +69,17 @@ async def handle_full(request):
         if audio_output is None:
             with open(audio_output, 'rb') as audio_file:
                 audio_bytes = audio_file.read()
-
-        response = {'userinput': userinput, 'output': output}
+        else:
+            audio_bytes = ""
+        
         headers = {'Audio-Output': audio_bytes}
+        response = {'userinput': userinput, 'output': output}
+       
         return web.json_response(response, headers=headers)
 
+
+
 async def handle_text(request):
-    print("text")
     data = await request.json()
     input = data['input']
     userinput, output, audio_output = controller.text_pipeline(input)
