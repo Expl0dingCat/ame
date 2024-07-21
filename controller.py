@@ -304,7 +304,15 @@ class controller:
             self.vprint('System prompt override disabled.')
 
     def user_cmds(self, input):
-        args = shlex.split(input)
+        try:
+            args = shlex.split(input)
+        except ValueError as e:
+            if str(e) == "No closing quotation":
+                self.vprint("Warning: Your input contains an unclosed quote. Processing as a single string.")
+                args = [input]
+            else:
+                raise
+
         command = args[0]
 
         if command in self.user_cmds_map:
