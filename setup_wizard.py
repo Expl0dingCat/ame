@@ -156,7 +156,7 @@ def install_vision_backend(type, hardware):
             print('llama-cpp-python will not be installed, LLaVA will not be supported.')
     
     if type in ['all', 'clip']:
-        print('Installing CLIP and its requirements...')
+        print('Instlling CLIP and its requirements...')
         reqs = {'git+https://github.com/openai/CLIP.git', 'ftfy', 'regex', 'tqdm'}
         subprocess.check_call([sys.executable, '-m', 'pip', 'install', *reqs])
     
