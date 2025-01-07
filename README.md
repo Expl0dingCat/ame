@@ -9,7 +9,7 @@ Join the **[discord](https://discord.gg/S6h8XYsuZt)** for frequent dev updates, 
 ## Disclaimer ⚠️
 ~~Ame is in an incomplete state and is being developed by me and only me, expect progress to be slow, refer to the **[progress](#progress-v1)** section of the readme for more information. The client and server are unable to communicate the audio files, this has not been implemented yet, audio generation is functional.~~
 
-The Ame Project has been discontinued, something new is coming soon... stay tuned.
+**The Ame Project has been discontinued, something new is coming soon... stay tuned.**
 
 ## Announcements 📢
 - [2024-05-15] Development is going well, see the discord channel #dev-spam for more! (Including a todo list and timelines) 
